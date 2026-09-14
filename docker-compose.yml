@@ -1,0 +1,22 @@
+services:
+  arrstream:
+    build: .
+    image: kasundigital/arrstream:latest
+    container_name: arrstream
+    restart: unless-stopped
+    ports:
+      - "4321:4321"
+    environment:
+      TZ: ${TZ:-UTC}
+      PORT: 4321
+      CONFIG_DIR: /config
+      MEDIA_ROOT: /data
+      SECRET_KEY: ${SECRET_KEY:-change-this-before-public-use}
+    volumes:
+      - ./config:/config
+      - ${DATA_PATH:-/data}:/data
+    # Intel/AMD users can uncomment this:
+    # devices:
+    #   - /dev/dri:/dev/dri
+    # NVIDIA users can add `gpus: all` after installing NVIDIA Container Toolkit.
+    # gpus: all
