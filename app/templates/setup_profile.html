@@ -1,0 +1,12 @@
+{% extends 'base.html' %}{% block content %}
+<div class="card">
+  <div class="label">First-time setup</div><h1 class="hero">IPTV direct-stream profile</h1><p class="muted">ArrStream analyzes first and only converts when media is not compatible with the selected direct-stream profile.</p>
+  <div class="steps"><span class="step">1 Admin</span><span class="step">2 Apps</span><span class="step">3 Paths</span><span class="step">4 Hardware</span><span class="step active">5 Profile</span></div>
+  <form method="post">
+    <div class="grid g2">
+      <div class="card" style="background:#0c1427"><h3>Recommended · IPTV Direct</h3><p>Container <b>MP4</b><br>Video <b>H.264 / AVC</b><br>Audio <b>AAC</b><br>Pixel format <b>yuv420p</b><br>Resolution/FPS <b>Keep source</b><br>Faststart <b>Enabled</b></p><input type="hidden" name="profile" value="iptv-direct"></div>
+      <div class="card" style="background:#0c1427"><h3>Automation</h3><label style="display:flex;gap:10px;align-items:center"><input style="width:auto" type="checkbox" name="auto_optimize" checked> Automatically optimize newly discovered incompatible files</label><div class="field" style="margin-top:15px"><label>Check Radarr/Sonarr every</label><select name="periodic_scan_minutes"><option value="1">1 minute</option><option value="5">5 minutes</option><option value="15">15 minutes</option><option value="60" selected>60 minutes</option></select></div><p class="muted">Initial existing-library processing will be scan-first so large libraries do not immediately start thousands of transcodes.</p></div>
+    </div>
+    <div style="margin-top:18px"><button class="btn" type="submit">Finish Setup & Open Dashboard</button></div>
+  </form>
+</div>{% endblock %}
