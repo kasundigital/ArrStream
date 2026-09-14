@@ -1,0 +1,19 @@
+{% extends 'base.html' %}{% block content %}
+<div class="card">
+  <div class="label">First-time setup</div><h1 class="hero">Choose processing hardware</h1><p class="muted">ArrStream detects usable GPUs inside the container. Select one or several; jobs are balanced across selected devices.</p>
+  <div class="steps"><span class="step">1 Admin</span><span class="step">2 Apps</span><span class="step">3 Paths</span><span class="step active">4 Hardware</span><span class="step">5 Profile</span></div>
+  <form method="post">
+    <div class="grid g2">
+      <div class="card" style="background:#0c1427"><h3>Detected GPUs</h3>
+        {% if gpus %}{% for g in gpus %}<label style="display:flex;gap:10px;align-items:center;margin:12px 0"><input style="width:auto" type="checkbox" name="gpu" value="{{ g.id }}" checked><span><b>{{ g.vendor }} · {{ g.name }}</b><br><span class="muted">{{ g.memory_mb ~ ' MB' if g.memory_mb else g.id }}</span></span></label>{% endfor %}
+        {% else %}<p class="muted">No exposed GPU detected. CPU fallback will be available.</p>{% endif %}
+      </div>
+      <div class="card" style="background:#0c1427"><h3>Scheduler</h3>
+        <div class="field"><label>Mode</label><select name="mode"><option value="auto">Automatic</option><option value="selected">Selected GPUs only</option><option value="cpu">CPU only</option></select></div>
+        <div class="field"><label>Concurrent jobs</label><input type="number" name="concurrency" min="1" max="16" value="1"></div>
+        <p class="muted">CPU threads detected: {{ cpu_count }}. GPU failure can fall back to CPU in the conversion engine.</p>
+      </div>
+    </div>
+    <div style="margin-top:18px"><button class="btn" type="submit">Save & Continue →</button></div>
+  </form>
+</div>{% endblock %}
