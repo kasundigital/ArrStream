@@ -1,0 +1,27 @@
+{% extends 'base.html' %}{% block content %}
+<div class="card">
+  <div class="label">First-time setup</div><h1 class="hero">Connect Radarr / Sonarr</h1><p class="muted">Add at least one working instance before continuing. ArrStream uses the API to discover library files and paths.</p>
+  <div class="steps"><span class="step">1 Admin</span><span class="step active">2 Apps</span><span class="step">3 Paths</span><span class="step">4 Hardware</span><span class="step">5 Profile</span></div>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <div class="grid g2">
+    <div>
+      <h3>Add instance</h3>
+      <form method="post">
+        <div class="field"><label>Type</label><select name="kind"><option value="radarr">Radarr</option><option value="sonarr">Sonarr</option></select></div>
+        <div class="field"><label>Name</label><input name="name" placeholder="Movies / TV / 4K / Anime" required></div>
+        <div class="field"><label>URL</label><input name="url" placeholder="http://radarr:7878" required></div>
+        <div class="field"><label>API Key</label><input name="api_key" type="password" required></div>
+        <button class="btn" type="submit">Test & Add</button>
+      </form>
+    </div>
+    <div>
+      <h3>Connected</h3>
+      {% if instances %}
+      <table><thead><tr><th>Name</th><th>Type</th><th>Version</th></tr></thead><tbody>
+        {% for i in instances %}<tr><td>{{ i['name'] }}</td><td><span class="badge">{{ i['kind'] }}</span></td><td>{{ i['version'] or '—' }}</td></tr>{% endfor %}
+      </tbody></table>
+      <form method="post" action="/setup/instances/continue" style="margin-top:18px"><button class="btn" type="submit">Continue →</button></form>
+      {% else %}<p class="muted">No instances added yet. The dashboard stays locked until at least one Radarr or Sonarr connection succeeds.</p>{% endif %}
+    </div>
+  </div>
+</div>{% endblock %}
