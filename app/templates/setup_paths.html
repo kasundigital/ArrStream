@@ -1,0 +1,11 @@
+{% extends 'base.html' %}{% block content %}
+<div class="card">
+  <div class="label">First-time setup</div><h1 class="hero">Verify media paths</h1><p class="muted">These are the current root folders reported by Radarr/Sonarr. ArrStream must see the same paths inside its container.</p>
+  <div class="steps"><span class="step">1 Admin</span><span class="step">2 Apps</span><span class="step active">3 Paths</span><span class="step">4 Hardware</span><span class="step">5 Profile</span></div>
+  <div class="card" style="background:#0c1427;margin-bottom:16px"><b>ArrStream media mount</b><div class="muted">{{ media_root }}</div></div>
+  {% if checks %}<table><thead><tr><th>Instance</th><th>Path</th><th>Exists</th><th>Read</th><th>Write</th></tr></thead><tbody>
+  {% for c in checks %}<tr><td>{{ c.instance }} <span class="badge">{{ c.kind }}</span></td><td><code>{{ c.path }}</code></td><td class="{{ 'ok' if c.exists else 'bad' }}">{{ '✓' if c.exists else '✕' }}</td><td class="{{ 'ok' if c.readable else 'bad' }}">{{ '✓' if c.readable else '✕' }}</td><td class="{{ 'ok' if c.writable else 'bad' }}">{{ '✓' if c.writable else '✕' }}</td></tr>{% endfor %}
+  </tbody></table>{% else %}<p class="muted">No root folders were returned.</p>{% endif %}
+  <div class="divider"></div><p class="muted">Recommended: mount the same host root into Radarr, Sonarr, downloader and ArrStream, for example <code>/data:/data</code>.</p>
+  <div class="row"><a class="btn secondary" href="/setup/paths">Check Again</a><a class="btn" href="/setup/hardware">Continue →</a></div>
+</div>{% endblock %}
