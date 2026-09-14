@@ -1,0 +1,10 @@
+{% extends 'base.html' %}{% block content %}
+<div class="auth card">
+  <div class="label">Secure access</div><h1 class="hero">Welcome back</h1><p class="muted">Sign in to manage your streaming readiness, queue and connected applications.</p>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form method="post">
+    <div class="field"><label>Username</label><input name="username" required autocomplete="username"></div>
+    <div class="field"><label>Password</label><input type="password" name="password" required autocomplete="current-password"></div>
+    <button class="btn" type="submit">Sign In</button>
+  </form>
+</div>{% endblock %}
