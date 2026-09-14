@@ -1,0 +1,13 @@
+{% extends 'base.html' %}{% block content %}
+<div class="auth card">
+  <div class="label">First-time setup</div><h1 class="hero">Create your administrator</h1><p class="muted">This account controls ArrStream, connected Arr instances, hardware and conversion settings.</p>
+  <div class="steps"><span class="step active">1 Admin</span><span class="step">2 Apps</span><span class="step">3 Paths</span><span class="step">4 Hardware</span><span class="step">5 Profile</span></div>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form method="post">
+    <div class="field"><label>Username</label><input name="username" required autocomplete="username"></div>
+    <div class="field"><label>Email <span class="muted">(optional)</span></label><input type="email" name="email"></div>
+    <div class="field"><label>Password</label><input type="password" name="password" required minlength="8" autocomplete="new-password"></div>
+    <div class="field"><label>Confirm password</label><input type="password" name="confirm_password" required minlength="8" autocomplete="new-password"></div>
+    <button class="btn" type="submit">Create Admin →</button>
+  </form>
+</div>{% endblock %}
