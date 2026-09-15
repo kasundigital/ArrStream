@@ -1,15 +1,29 @@
 {% extends 'base.html' %}{% block content %}
-<div class="row between" style="margin-bottom:18px"><div><div class="label">Overview</div><h1 class="hero">Streaming readiness at a glance</h1><p class="muted">Monitor library readiness, processing, hardware and Arr connections.</p></div><a class="btn" href="/library">Scan library</a></div>
+<div class="row between" style="margin-bottom:18px"><div><div class="label">Overview</div><h1 class="hero">Media optimization control center</h1><p class="muted">Scan, preview, queue and process media with safe FFmpeg workflows.</p></div><a class="btn" href="/library">Open Library</a></div>
+<div class="card" style="margin-bottom:16px">
+  <div class="row between"><div><div class="label">Processing state</div><div class="state {% if processing_state=='running' %}ok{% elif processing_state=='paused' or processing_state=='stopping' %}warn{% endif %}">{{ processing_state }}</div></div>
+  <div class="row">
+    <form method="post" action="/processing/start"><button class="btn">Start</button></form>
+    <form method="post" action="/processing/pause"><button class="btn secondary">Pause</button></form>
+    <form method="post" action="/processing/resume"><button class="btn secondary">Resume</button></form>
+    <form method="post" action="/processing/stop-after"><button class="btn warn">Stop after current</button></form>
+    <form method="post" action="/processing/stop-now"><button class="btn danger">Stop now</button></form>
+  </div></div>
+</div>
 <div class="grid g4">
-  <div class="card stat"><span class="label">Processed</span><b>{{ stats['done'] or 0 }}</b><span class="muted">completed jobs</span></div>
-  <div class="card stat"><span class="label">Queued</span><b>{{ stats['queued'] or 0 }}</b><span class="muted">waiting jobs</span></div>
-  <div class="card stat"><span class="label">Direct-stream ready</span><b>{{ lib['ready'] or 0 }}</b><span class="muted">of {{ lib['total'] or 0 }} scanned</span></div>
-  <div class="card stat"><span class="label">Need optimization</span><b>{{ lib['optimize'] or 0 }}</b><span class="muted">library files</span></div>
+  <div class="card stat"><span class="label">Completed</span><b>{{ stats['done'] or 0 }}</b></div>
+  <div class="card stat"><span class="label">Queued</span><b>{{ stats['queued'] or 0 }}</b><span class="muted">{{ stats['running'] or 0 }} running</span></div>
+  <div class="card stat"><span class="label">Ready</span><b>{{ lib['ready'] or 0 }}</b><span class="muted">of {{ lib['total'] or 0 }} scanned</span></div>
+  <div class="card stat"><span class="label">Need work</span><b>{{ lib['optimize'] or 0 }}</b><span class="muted">dry-run result</span></div>
 </div>
-<div class="grid g3" style="margin-top:16px">
-  <div class="card"><div class="row between"><h3>Current processing</h3><span class="badge">Live</span></div>{% set active = jobs|selectattr('status','equalto','running')|list %}{% if active %}{% for j in active %}<b class="mono">{{ j['media_path'] }}</b><div class="progress" style="margin:12px 0"><span style="width:{{ j['progress'] }}%"></span></div><div class="row between"><span class="muted">{{ j['action'] or 'Analyzing' }}</span><b>{{ '%.0f'|format(j['progress']) }}%</b></div>{% endfor %}{% else %}<p class="muted">Nothing processing right now.</p><div class="progress"><span style="width:0%"></span></div>{% endif %}<div class="spacer"></div><a class="btn secondary" href="/queue">Open queue</a></div>
-  <div class="card"><h3>System</h3><div class="row between"><span class="muted">CPU</span><b>{{ cpu }}%</b></div><div class="row between"><span class="muted">Memory</span><b>{{ memory }}%</b></div><div class="divider"></div><div class="label">Processing devices</div>{% if gpus %}{% for g in gpus %}<p><span class="ok">●</span> {{ g.vendor }} · {{ g.name }}</p>{% endfor %}{% else %}<p><span class="ok">●</span> CPU mode available</p>{% endif %}<a class="btn secondary" href="/diagnostics">Diagnostics</a></div>
-  <div class="card"><h3>Connections</h3>{% for i in instances %}<div class="row between" style="margin:10px 0"><div><b>{{ i['name'] }}</b><div class="muted">{{ i['kind']|capitalize }} · {{ i['version'] }}</div></div><span class="ok">● Configured</span></div>{% endfor %}<div class="divider"></div><a class="btn secondary" href="/connections">Manage connections</a></div>
+<div class="grid g2" style="margin-top:16px">
+  <div class="card"><div class="row between"><h3>Current processing</h3><a class="btn secondary" href="/queue">Open queue</a></div>
+  {% set active = jobs|selectattr('status','in',['running','paused','starting'])|list %}{% if active %}{% for j in active %}
+    <div style="margin:14px 0"><b class="mono">{{ j['media_path'] }}</b><div class="progress" style="margin:10px 0"><span style="width:{{ j['progress'] or 0 }}%"></span></div>
+    <div class="row between"><span class="muted">{{ j['encoder'] or j['action'] }} · {{ j['speed'] or '—' }}</span><b>{{ '%.0f'|format(j['progress'] or 0) }}%</b></div></div>
+  {% endfor %}{% else %}<p class="muted">Nothing processing right now.</p>{% endif %}</div>
+  <div class="card"><h3>System</h3><div class="row between"><span class="muted">CPU</span><b>{{ cpu }}%</b></div><div class="row between"><span class="muted">Memory</span><b>{{ memory }}%</b></div><div class="divider"></div>{% if gpus %}{% for g in gpus %}<p><span class="ok">●</span> {{ g.vendor }} · {{ g.name }}</p>{% endfor %}{% else %}<p><span class="ok">●</span> CPU mode available</p>{% endif %}</div>
 </div>
-<div class="card" style="margin-top:16px"><div class="row between"><div><h3 style="margin-bottom:2px">Recent activity</h3><span class="muted">Latest jobs</span></div><a class="btn secondary" href="/history">Full history</a></div>{% if jobs %}<table><thead><tr><th>Media</th><th>Source</th><th>Action</th><th>Status</th><th>Progress</th></tr></thead><tbody>{% for j in jobs %}<tr><td class="mono">{{ j['media_path'] }}</td><td>{{ j['source_kind'] or '—' }}</td><td>{{ j['action'] or 'Analyze' }}</td><td><span class="badge">{{ j['status'] }}</span></td><td>{{ '%.0f'|format(j['progress']) }}%</td></tr>{% endfor %}</tbody></table>{% else %}<p class="muted">No jobs yet. Scan the library to begin.</p>{% endif %}</div>
+<div class="card" style="margin-top:16px"><div class="row between"><div><h3>Folders & profiles</h3><span class="muted">Each folder can use its own output profile.</span></div><a class="btn secondary" href="/profiles">Manage profiles</a></div>
+<table><thead><tr><th>Folder</th><th>Type</th><th>Path</th><th>Profile</th><th>Processing</th></tr></thead><tbody>{% for f in folders %}<tr><td>{{ f['name'] }}</td><td>{{ f['media_type'] }}</td><td class="mono">{{ f['container_path'] }}</td><td>{{ f['profile_name'] }}</td><td>{% if f['processing_enabled'] %}<span class="ok">Enabled</span>{% else %}<span class="warn">Paused</span>{% endif %}</td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}
