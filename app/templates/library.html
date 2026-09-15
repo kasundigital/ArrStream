@@ -1,1 +1,71 @@
-{% extends 'base.html' %}{% block content %}<div class="row between"><div><div class="label">Media analysis</div><h1 class="hero">Library</h1><p class="muted">Scan mounted media, inspect codecs and queue only files that need optimization.</p></div><form method="post" action="/library/scan"><button class="btn">Scan now</button></form></div><div class="grid g4" style="margin-bottom:16px"><div class="card stat"><span class="label">Total</span><b>{{ counts['total'] or 0 }}</b></div><div class="card stat"><span class="label">Ready</span><b>{{ counts['ready'] or 0 }}</b></div><div class="card stat"><span class="label">Optimize</span><b>{{ counts['optimize'] or 0 }}</b></div><div class="card stat"><span class="label">Failed probe</span><b>{{ counts['failed'] or 0 }}</b></div></div><div class="row" style="margin-bottom:14px"><a class="btn secondary" href="/library?status=all">All</a><a class="btn secondary" href="/library?status=ready">Ready</a><a class="btn secondary" href="/library?status=optimize">Optimize</a><a class="btn secondary" href="/library?status=failed">Failed</a></div><div class="card">{% if items %}<table><thead><tr><th>Media</th><th>Container</th><th>Video</th><th>Audio</th><th>Readiness</th><th>Action</th><th></th></tr></thead><tbody>{% for i in items %}<tr><td><div class="mono">{{ i['media_path'] }}</div><div class="small muted">{{ '%.2f'|format((i['size_bytes'] or 0)/1073741824) }} GB</div></td><td>{{ i['container'] or '—' }}</td><td>{{ i['video_codec'] or '—' }}</td><td>{{ i['audio_codec'] or '—' }}</td><td><span class="badge {% if i['readiness']=='ready' %}ok{% elif i['readiness']=='failed' %}bad{% endif %}">{{ i['readiness'] }}</span></td><td>{{ i['action'] or '—' }}</td><td>{% if i['readiness']=='optimize' %}<form method="post" action="/library/{{ i['id'] }}/queue"><button class="btn secondary">Queue</button></form>{% endif %}</td></tr>{% endfor %}</tbody></table>{% else %}<p class="muted">No media scanned yet. Click <b>Scan now</b>. ArrStream scans up to the configured scan limit each run.</p>{% endif %}</div>{% endblock %}
+{% extends 'base.html' %}{% block content %}
+<div class="row between" style="margin-bottom:18px">
+  <div>
+    <div class="label">Media analysis</div>
+    <h1 class="hero">Library</h1>
+    <p class="muted">Choose the mounted folders you want ArrStream to scan, then analyze codecs and queue only incompatible files.</p>
+  </div>
+  <form method="post" action="/library/scan"><button class="btn">Scan selected folders</button></form>
+</div>
+
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+<div class="grid g2" style="margin-bottom:16px">
+  <div class="card">
+    <div class="row between"><div><div class="label">Scan folders</div><h3 style="margin:3px 0 4px">Choose media folders</h3></div><span class="badge">Root: {{ media_root }}</span></div>
+    <p class="muted">ArrStream can only browse folders mounted inside the container. With <span class="mono">-v /host/media:/data</span>, choose folders under <span class="mono">/data</span>.</p>
+    <form method="post" action="/library/folders">
+      <div class="field"><label>Folder</label><select name="folder" required>{% for f in folder_choices %}<option value="{{ f }}">{{ f }}</option>{% endfor %}</select></div>
+      <div class="field"><label>Label <span class="muted">(optional)</span></label><input name="label" placeholder="Movies, TV, 4K..."></div>
+      <button class="btn">Add scan folder</button>
+    </form>
+    {% if not folder_choices %}<p class="bad">No folders are visible under {{ media_root }}. Check your Docker volume mount.</p>{% endif %}
+  </div>
+  <div class="card">
+    <div class="label">Configured folders</div>
+    <h3 style="margin:3px 0 12px">Folders ArrStream will scan</h3>
+    {% if folders %}
+      {% for f in folders %}
+      <div class="row between" style="padding:10px 0;border-bottom:1px solid var(--line)">
+        <div><b>{{ f['label'] or f['path'] }}</b><div class="mono small muted">{{ f['path'] }}</div></div>
+        <div class="row">
+          <form method="post" action="/library/folders/{{ f['id'] }}/scan"><button class="btn secondary">Scan</button></form>
+          <form method="post" action="/library/folders/{{ f['id'] }}/delete"><button class="btn danger">Remove</button></form>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted">No manual folders selected yet. ArrStream currently falls back to accessible Radarr/Sonarr roots, then {{ media_root }}.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid g4" style="margin-bottom:16px">
+  <div class="card stat"><span class="label">Total</span><b>{{ counts['total'] or 0 }}</b></div>
+  <div class="card stat"><span class="label">Ready</span><b>{{ counts['ready'] or 0 }}</b></div>
+  <div class="card stat"><span class="label">Optimize</span><b>{{ counts['optimize'] or 0 }}</b></div>
+  <div class="card stat"><span class="label">Failed probe</span><b>{{ counts['failed'] or 0 }}</b></div>
+</div>
+
+<div class="row" style="margin-bottom:14px">
+  <a class="btn secondary" href="/library?status=all">All</a>
+  <a class="btn secondary" href="/library?status=ready">Ready</a>
+  <a class="btn secondary" href="/library?status=optimize">Optimize</a>
+  <a class="btn secondary" href="/library?status=failed">Failed</a>
+</div>
+
+<div class="card">
+{% if items %}
+<table><thead><tr><th>Media</th><th>Container</th><th>Video</th><th>Audio</th><th>Readiness</th><th>Action</th><th></th></tr></thead><tbody>
+{% for i in items %}<tr>
+<td><div class="mono">{{ i['media_path'] }}</div><div class="small muted">{{ '%.2f'|format((i['size_bytes'] or 0)/1073741824) }} GB</div></td>
+<td>{{ i['container'] or '—' }}</td><td>{{ i['video_codec'] or '—' }}</td><td>{{ i['audio_codec'] or '—' }}</td>
+<td><span class="badge {% if i['readiness']=='ready' %}ok{% elif i['readiness']=='failed' %}bad{% endif %}">{{ i['readiness'] }}</span></td>
+<td>{{ i['action'] or '—' }}</td>
+<td>{% if i['readiness']=='optimize' %}<form method="post" action="/library/{{ i['id'] }}/queue"><button class="btn secondary">Queue</button></form>{% endif %}</td>
+</tr>{% endfor %}</tbody></table>
+{% else %}
+<p class="muted">No media scanned yet. Choose a scan folder above, then click <b>Scan selected folders</b>.</p>
+{% endif %}
+</div>
+{% endblock %}
