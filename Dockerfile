@@ -17,6 +17,11 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY app /app/app
 
+# Fail the image build early if the application has a Python syntax/import
+# problem or if a fresh SQLite schema cannot be initialized.
+RUN python -m py_compile /app/app/main.py \
+    && CONFIG_DIR=/tmp/arrstream-build python -c "from app.main import init_db; init_db()"
+
 RUN mkdir -p /config /data
 VOLUME ["/config", "/data"]
 EXPOSE 4321
